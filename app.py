@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from cuenta import deposito, transferencia, retiro, cargar_datos
+from cuenta import deposito, transferencia, retiro, cargar_datos,crea_cuenta 
 
 app = Flask(__name__)
 
@@ -42,6 +42,24 @@ def handle_retiro():
         return jsonify(success=True, saldo=saldo)
     else:
         return jsonify(success=False), 400
+
+
+@app.route('/crear_cuenta', methods=['POST'])
+def handle_crear_cuenta():
+    data = request.json
+    titular = data.get('titular')
+    nip = data.get('nip')
+    saldo = data.get('saldo', 0)
+
+    try:
+        crea_cuenta(titular, nip, saldo)
+        datos = cargar_datos()
+        no_cuenta = max(datos.keys(), key=int)
+        saldo = datos[no_cuenta]['saldo']
+        return jsonify(success=True, no_cuenta=no_cuenta, saldo=saldo)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 400
+
 
 
 if __name__ == '__main__':
