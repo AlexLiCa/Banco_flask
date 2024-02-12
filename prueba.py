@@ -9,8 +9,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Definición del modelo Cuenta
-
-
 class Cuenta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titular = db.Column(db.String(80), nullable=False)
@@ -21,7 +19,6 @@ class Cuenta(db.Model):
         return f'<Cuenta {self.id}>'
 
 # Creación de la tabla e inserción de datos
-
 
 def setup_database():
     with app.app_context():
