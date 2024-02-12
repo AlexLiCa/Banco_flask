@@ -1,112 +1,55 @@
+from db import db
 
-import json
-import threading
-import os
+class Cuenta(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    titular = db.Column(db.String(80), nullable=False)
+    nip = db.Column(db.Integer, nullable=False)
+    saldo = db.Column(db.Float, nullable=False)
 
-# Definir la ruta del archivo JSON
-json_db_path = 'Cuentas.json'
-
-# Función para leer los datos de las cuentas desde el archivo JSON
-
-
-def cargar_datos():
-    if not os.path.exists(json_db_path):
-        return {}
-    with open(json_db_path, 'r') as file:
-        return json.load(file)
-
-# Función para guardar los datos de las cuentas en el archivo JSON
+    def __repr__(self):
+        return f'<Cuenta {self.id}>'
 
 
-def guardar_datos(datos):
-    with open(json_db_path, 'w') as file:
-        json.dump(datos, file, indent=4)
+def crea_cuenta(titular, nip, saldo=0):
+    nueva_cuenta = Cuenta(titular=titular, nip=nip, saldo=saldo)
+    db.session.add(nueva_cuenta)
+    db.session.commit()
+    return nueva_cuenta
 
 
-class Cuenta:
-    def __init__(self, titular: str, no_cuenta: int, nip: int, saldo: float) -> None:
-        self.nip = nip
-        self.saldo = saldo
-        self.no_cuenta = no_cuenta
-        self.titular = titular
-        self.lock_saldo = threading.Lock()
+def deposito(no_cuenta, monto):
+    cuenta = Cuenta.query.get(no_cuenta)
+    if cuenta:
+        cuenta.saldo += monto
+        db.session.commit()
+        return {'success': True, 'saldo': cuenta.saldo}
+    else:
+        return {'success': False, 'message': 'Cuenta no encontrada'}
 
-    def retira(self, cantidad: float, nip_recibido: int):
-        if nip_recibido != self.nip:
-            return False
 
-        if cantidad > 0 and self.saldo >= cantidad:
-            self.saldo -= cantidad
-            self.actualiza_saldo_en_archivo()
-            return True
+def retiro(no_cuenta, monto, nip):
+    cuenta = Cuenta.query.get(no_cuenta)
+    if cuenta and cuenta.nip == nip:
+        if cuenta.saldo >= monto:
+            cuenta.saldo -= monto
+            db.session.commit()
+            return {'success': True, 'saldo': cuenta.saldo}
         else:
-            return False
+            return {'success': False, 'message': 'Saldo insuficiente'}
+    else:
+        return {'success': False, 'message': 'Cuenta no encontrada o NIP incorrecto'}
 
-    def deposita(self, cantidad: float):
-        if cantidad > 0:
-            self.saldo += cantidad
-            self.actualiza_saldo_en_archivo()
-            return True
+
+def transferencia(no_origen, no_destino, monto):
+    origen = Cuenta.query.get(no_origen)
+    destino = Cuenta.query.get(no_destino)
+    if origen and destino:
+        if origen.saldo >= monto:
+            origen.saldo -= monto
+            destino.saldo += monto
+            db.session.commit()
+            return {'success': True, 'saldo_origen': origen.saldo, 'saldo_destino': destino.saldo}
         else:
-            return False
-
-    def actualiza_saldo_en_archivo(self):
-        with self.lock_saldo:
-            datos = cargar_datos()
-            datos[str(self.no_cuenta)] = {
-                "titular": self.titular, "no_cuenta": self.no_cuenta, "nip": self.nip, "saldo": self.saldo}
-            guardar_datos(datos)
-
-    def transfiere(self, cuenta_destino, monto: float):
-        if self.no_cuenta == cuenta_destino.no_cuenta:
-            return False
-
-        elif self.retira(monto, self.nip):
-            if cuenta_destino.deposita(monto):
-                return True
-
-        return False
-
-
-def transferencia(no_origen : int, no_destino: int , monto: int):
-    cuenta_origen = buscar_cuenta(no_origen)
-    cuenta_destino = buscar_cuenta(no_destino)
-    if cuenta_origen and cuenta_destino:
-        return cuenta_origen.transfiere(cuenta_destino, monto)
-    else: 
-        return False
-
-def retiro(no_cuenta: int, monto : float, nip: int):
-    cuenta = buscar_cuenta(no_cuenta)
-    if no_cuenta:
-        return cuenta.retira(monto, nip)
+            return {'success': False, 'message': 'Saldo insuficiente en cuenta origen'}
     else:
-        return False
-
-def deposito(no_cuenta: int, monto: float):
-    cuenta = buscar_cuenta(no_cuenta)
-    if no_cuenta:
-        return cuenta.deposita(monto)
-    else:
-        return False
-
-def crea_cuenta(titular: str, nip: int, saldo: float = 0):
-    datos = cargar_datos()
-    no_cuenta = len(datos) + 1
-    nueva_cuenta = Cuenta(titular, no_cuenta, nip, saldo)
-    datos[str(no_cuenta)] = {"titular": titular,
-                             "no_cuenta": no_cuenta, "nip": nip, "saldo": saldo}
-    guardar_datos(datos)
-
-
-def buscar_cuenta(no_cuenta: int):
-    datos = cargar_datos()
-    cuenta_data = datos.get(str(no_cuenta))
-    if cuenta_data is not None:
-        return Cuenta(titular=cuenta_data["titular"], no_cuenta=cuenta_data["no_cuenta"], nip=cuenta_data["nip"], saldo=cuenta_data["saldo"])
-    else:
-        return None
-
-
-if __name__ == "__main__":
-    print("esta bien")
+        return {'success': False, 'message': 'Una o ambas cuentas no encontradas'}
