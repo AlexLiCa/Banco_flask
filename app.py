@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask_cors import CORS
 from werkzeug.security import check_password_hash
 import os
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -24,8 +24,7 @@ jwt = JWTManager(app)
 db.init_app(app)
 
 with app.app_context():
-    db.create_all()  # Crea las tablas si no existen
-
+    db.create_all()  
 
 @app.route('/deposito', methods=['POST'])
 def handle_deposito():
@@ -105,8 +104,6 @@ def login():
             return jsonify(success=False, message="Usuario o Contraseña incorrectos"), 401
     except:
         return jsonify(success=False, message="Credenciales incorrectas"), 401
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

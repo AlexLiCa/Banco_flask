@@ -26,7 +26,7 @@ def deposito(no_cuenta: int, monto: float):
     if cuenta:
         cuenta.saldo += monto
         db.session.commit()
-        return {'success': True, 'saldo': cuenta.saldo, 'message': 'Retiro exitoso'}
+        return {'success': True, 'saldo': cuenta.saldo, 'message': 'Deposito exitoso'}
     else:
         return {'success': False, 'message': 'Cuenta no encontrada'}
 
