@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from db import db
 from cuenta import Cuenta, deposito, transferencia, retiro, crea_cuenta
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import check_password_hash
 import os
 from dotenv import load_dotenv, find_dotenv
 
@@ -81,8 +82,11 @@ def obtener_cuentas():
     return jsonify(cuentas)
 
 def validar_usuario(username, password):
-    #TODO implementar la logica de validacion
-    return True
+    user = Cuenta.query.filter_by(titular=username).first()
+    if user and check_password_hash(user.password, password):
+        return True
+    else :
+        return False
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -92,9 +96,11 @@ def login():
         password = data.get("password")
         if validar_usuario(username, password):
             acces_token = create_access_token(identity=username)
-            return jsonify(acces_token), 200
+            return jsonify(succes = True , JWT =acces_token), 200
+        else:
+            return jsonify(success=False, message="Usuario o Contraseña incorrectos"), 401
     except:
-        return jsonify(success=False, message="Credenciales incorrectas "), 401
+        return jsonify(success=False, message="Credenciales incorrectas"), 401
 
 
 

@@ -1,6 +1,6 @@
 from app import db, app
-from cuenta import Cuenta  # Importa todos los modelos que necesites
+from cuenta import Cuenta  
 
 with app.app_context():
-    db.create_all()  # Crea las tablas según los modelos definidos
+    db.create_all() 
     print("Tablas creadas con éxito.")
