@@ -1,9 +1,20 @@
 from flask import Flask, request, jsonify
 from db import db
 from cuenta import Cuenta, deposito, transferencia, retiro, crea_cuenta
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import os
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv()
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://banquitobd_distribuidos_user:WyBjSnJcaqpYP6OKNtq7bX2UBz9XYoD6@dpg-cn52q5f109ks73f0qjc0-a.oregon-postgres.render.com/banquitobd_distribuidos'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABESE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+#Config JWT
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+
+jwt = JWTManager(app)
 
 db.init_app(app)
 
@@ -11,8 +22,6 @@ with app.app_context():
     db.create_all()  # Crea las tablas si no existen
 
 # Tus rutas y lógica de la aplicación aquí
-
-
 
 @app.route('/deposito', methods=['POST'])
 def handle_deposito():
@@ -58,6 +67,7 @@ def handle_crear_cuenta():
 
 
 @app.route('/cuentas', methods=['GET'])
+#@jwt_required
 def obtener_cuentas():
     cuentas_lista = Cuenta.query.all()  # Consulta todas las cuentas
     cuentas = []
@@ -69,6 +79,23 @@ def obtener_cuentas():
             'saldo': cuenta.saldo
         })
     return jsonify(cuentas)
+
+def validar_usuario(username, password):
+    #TODO implementar la logica de validacion
+    return True
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    try:
+        username = data.get("titular")
+        password = data.get("password")
+        if validar_usuario(username, password):
+            acces_token = create_access_token(identity=username)
+            return jsonify(acces_token), 200
+    except:
+        return jsonify(success=False, message="Credenciales incorrectas "), 401
+
 
 
 if __name__ == '__main__':

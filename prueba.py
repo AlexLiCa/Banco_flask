@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+import os
+from dotenv import load_dotenv, find_dotenv
 
 app = Flask(__name__)
 
 # Configuración de la base de datos
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://banquitobd_distribuidos_user:WyBjSnJcaqpYP6OKNtq7bX2UBz9XYoD6@dpg-cn52q5f109ks73f0qjc0-a.oregon-postgres.render.com/banquitobd_distribuidos'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABESE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
