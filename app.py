@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from db import db
 from cuenta import Cuenta, deposito, transferencia, retiro, crea_cuenta
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_cors import CORS
 from werkzeug.security import check_password_hash
 import os
 from dotenv import load_dotenv, find_dotenv
@@ -9,6 +10,9 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+
+CORS(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABESE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -26,7 +30,7 @@ with app.app_context():
 @app.route('/deposito', methods=['POST'])
 def handle_deposito():
     data = request.json
-    resultado = deposito(data.get('no_cuenta'), data.get('monto'))
+    resultado = deposito(data.get('no_cuenta'), float(data.get('monto')))
     if resultado['success']:
         return jsonify(resultado)
     else:
@@ -36,8 +40,8 @@ def handle_deposito():
 @app.route('/transferencia', methods=['POST'])
 def handle_transferencia():
     data = request.json
-    resultado = transferencia(data.get('no_origen'),
-                              data.get('no_destino'), data.get('monto'))
+    resultado = transferencia(int(data.get('no_origen')),
+                              int(data.get('no_destino')), float(data.get('monto')))
     if resultado['success']:
         return jsonify(resultado)
     else:
@@ -48,7 +52,7 @@ def handle_transferencia():
 def handle_retiro():
     data = request.json
     resultado = retiro(data.get('no_cuenta'),
-                       data.get('monto'), data.get('nip'))
+                       float(data.get('monto')), int(data.get('nip')))
     if resultado['success']:
         return jsonify(resultado)
     else:
@@ -60,9 +64,9 @@ def handle_crear_cuenta():
     data = request.json
     try:
         cuenta = crea_cuenta(data.get('titular'),
-                             data.get('nip'),
+                             int(data.get('nip')),
                              data.get('password'),
-                             data.get('saldo', 0))
+                             float(data.get('saldo', 0)))
         return jsonify(success=True, no_cuenta=cuenta.id, saldo=cuenta.saldo)
     except Exception as e:
         return jsonify(success=False, message=f"Error al crear la cuenta: {e}"), 400
