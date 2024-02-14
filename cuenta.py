@@ -26,7 +26,7 @@ def deposito(no_cuenta: int, monto: float):
     if cuenta:
         cuenta.saldo += monto
         db.session.commit()
-        return {'success': True, 'saldo': cuenta.saldo}
+        return {'success': True, 'saldo': cuenta.saldo, 'message': 'Retiro exitoso'}
     else:
         return {'success': False, 'message': 'Cuenta no encontrada'}
 
@@ -37,7 +37,7 @@ def retiro(no_cuenta: int, monto: float, nip: int):
         if cuenta.saldo >= monto:
             cuenta.saldo -= monto
             db.session.commit()
-            return {'success': True, 'saldo': cuenta.saldo}
+            return {'success': True, 'saldo': cuenta.saldo, 'message': 'Retiro exitoso'}
         else:
             return {'success': False, 'message': 'Saldo insuficiente'}
     else:
@@ -52,7 +52,7 @@ def transferencia(no_origen: int, no_destino: int, monto: float):
             origen.saldo -= monto
             destino.saldo += monto
             db.session.commit()
-            return {'success': True, 'saldo_origen': origen.saldo, 'saldo_destino': destino.saldo}
+            return {'success': True, 'saldo_origen': origen.saldo, 'saldo_destino': destino.saldo, 'message': 'Transferencia exitosa'}
         else:
             return {'success': False, 'message': 'Saldo insuficiente en cuenta origen'}
     else:
