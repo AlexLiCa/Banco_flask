@@ -21,7 +21,6 @@ db.init_app(app)
 with app.app_context():
     db.create_all()  # Crea las tablas si no existen
 
-# Tus rutas y lógica de la aplicación aquí
 
 @app.route('/deposito', methods=['POST'])
 def handle_deposito():
@@ -60,22 +59,23 @@ def handle_crear_cuenta():
     data = request.json
     try:
         cuenta = crea_cuenta(data.get('titular'),
-                             data.get('nip'), data.get('saldo', 0))
+                             data.get('nip'),
+                             data.get('password'),
+                             data.get('saldo', 0))
         return jsonify(success=True, no_cuenta=cuenta.id, saldo=cuenta.saldo)
-    except:
-        return jsonify(success=False, message="Error al crear la cuenta"), 400
-
+    except Exception as e:
+        return jsonify(success=False, message=f"Error al crear la cuenta: {e}"), 400
 
 @app.route('/cuentas', methods=['GET'])
 #@jwt_required
 def obtener_cuentas():
-    cuentas_lista = Cuenta.query.all()  # Consulta todas las cuentas
+    cuentas_lista = Cuenta.query.all()
     cuentas = []
     for cuenta in cuentas_lista:
         cuentas.append({
             'id': cuenta.id,
             'titular': cuenta.titular,
-            'nip': cuenta.nip,  # Ten cuidado con exponer datos sensibles como el NIP
+            'nip': cuenta.nip,  
             'saldo': cuenta.saldo
         })
     return jsonify(cuentas)

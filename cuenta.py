@@ -7,7 +7,7 @@ class Cuenta(db.Model):
     titular = db.Column(db.String(80), nullable=False)
     nip = db.Column(db.Integer, nullable=False)
     saldo = db.Column(db.Float, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(513), nullable=False)
 
     def __repr__(self):
         return f'<Cuenta {self.id}>'
@@ -15,7 +15,7 @@ class Cuenta(db.Model):
 
 def crea_cuenta(titular, nip, password, saldo=0):
     nueva_cuenta = Cuenta(titular=titular, nip=nip, saldo=saldo,
-                          password_hash=generate_password_hash(password))
+                          password=generate_password_hash(password))
     db.session.add(nueva_cuenta)
     db.session.commit()
     return nueva_cuenta
