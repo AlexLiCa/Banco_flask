@@ -2,6 +2,7 @@ from db import db
 from werkzeug.security import generate_password_hash
 
 
+
 class Cuenta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titular = db.Column(db.String(80), nullable=False)

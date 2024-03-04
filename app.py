@@ -99,7 +99,7 @@ def login():
         password = data.get("password")
         if validar_usuario(username, password):
             acces_token = create_access_token(identity=username)
-            return jsonify(succes = True , JWT =acces_token), 200
+            return jsonify(succes = True , JWT =acces_token, message="Login exitoso"), 200
         else:
             return jsonify(success=False, message="Usuario o Contraseña incorrectos"), 401
     except:
